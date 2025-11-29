@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Catalog — Movie Reviews</title>
+		<style>
+			body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#0f172a; color:#e5e7eb; margin:0; }
+			a { color:#22d3ee; text-decoration:none; }
+			.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+			nav { padding: 12px 0; }
+			h1 { margin: 12px 0 18px; }
+			/* Full-width stacked list with poster + details + reviews */
+			.list { display:flex; flex-direction: column; gap: 24px; }
+			.row { display:grid; grid-template-columns: 180px 1fr 320px; gap: 24px; align-items: start; padding: 20px 0; border-bottom: 1px solid rgba(229,231,235,.08); }
+			.poster { width: 180px; height: 270px; border-radius: 8px; object-fit: cover; background:#0b1220; border:1px solid rgba(229,231,235,.06); }
+			.title { font-weight:700; font-size: 22px; margin-bottom: 6px; }
+			.sub { color:#cbd5e1; font-size: 14px; margin-bottom: 8px; }
+			.desc { color:#9ca3af; }
+			.dim { color:#9ca3af; font-size: 14px; }
+			.reviews { background:#111827; border:1px solid rgba(229,231,235,.06); border-radius:10px; padding:12px; }
+			.review { margin:0 0 10px; }
+			.form { display:grid; grid-template-columns: 1fr auto; gap:8px; margin-top:10px; }
+			textarea, select { width:100%; padding:8px; border-radius:8px; border:1px solid rgba(229,231,235,.08); background:#0b1220; color:#e5e7eb; }
+			button { cursor:pointer; padding:8px 12px; border-radius:8px; border:0; font-weight:600; background:#22d3ee; color:#051923; }
+			.msg { margin-top:8px; font-size:14px; color:#9ca3af; }
+			@media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<nav>
+				<a href="index.html">Home</a> ·
+				<a href="about.html">About</a> ·
+				<a href="contact.html">Contact</a> ·
+				<a id="loginLink" href="userLogin.html">Login</a> <span id="userEmail" class="dim" style="margin-left:8px"></span>
+			</nav>
+			<h1>Catalog</h1>
+			<div id="grid" class="list" aria-live="polite"></div>
+		</div>
+		<script>
+			function updateAuthUI(){
+				const email = localStorage.getItem('userEmail');
+				const loginLink = document.getElementById('loginLink');
+				const emailEl = document.getElementById('userEmail');
+				if (email) {
+					emailEl.textContent = email;
+					loginLink.textContent = 'Logout';
+					loginLink.removeAttribute('href');
+					loginLink.onclick = () => { localStorage.removeItem('userEmail'); updateAuthUI(); };
+				} else {
+					emailEl.textContent = '';
+					loginLink.textContent = 'Login';
+					loginLink.setAttribute('href', 'userLogin.html');
+					loginLink.onclick = null;
+				}
+			}
+
+			async function load(){
+				try {
+					const res = await fetch('/api/movies');
+					const entries = await res.json();
+					const grid = document.getElementById('grid');
+					if (!entries.length) { grid.innerHTML = '<p class="dim">No movies found.</p>'; return; }
+					grid.innerHTML = entries.map((m) => {
+						const title = m.title;
+						const img = m.image ? `Pictures/${m.image}` : '';
+						const desc = m.description || '';
+						const year = m.year ? `${m.year}` : '';
+						const genre = m.genre || '';
+						const director = m.director || '';
+						return `
+							<div class="row" data-title="${title}">
+								${img ? `<img class=\"poster\" src=\"${img}\" alt=\"Poster for ${title}\" onerror=\"this.style.display='none'\" />` : `<div class=\"poster\"></div>`}
+								<div class="details">
+									<div class="title">${title}</div>
+									<div class="sub">${[year, genre, director].filter(Boolean).join(' • ')}</div>
+									<p class="desc">${desc}</p>
+								</div>
+								<div class="reviews">
+									<div class="list" id="reviews-${encodeURIComponent(title)}"></div>
+									<div class="form">
+										<textarea rows="3" placeholder="Write a review..." id="text-${encodeURIComponent(title)}"></textarea>
+										<div>
+											<select id="rating-${encodeURIComponent(title)}">
+												<option value="5">★★★★★</option>
+												<option value="4">★★★★☆</option>
+												<option value="3">★★★☆☆</option>
+												<option value="2">★★☆☆☆</option>
+												<option value="1">★☆☆☆☆</option>
+											</select>
+											<button type="button" onclick="submitReview('${encodeURIComponent(title)}')">Submit</button>
+										</div>
+									</div>
+									<div class="msg" id="msg-${encodeURIComponent(title)}"></div>
+								</div>
+							</div>
+						`;
+					}).join('');
+					for (const m of entries) { loadReviews(m.title); }
+				} catch (e) {
+					document.getElementById('grid').innerHTML = '<p class="dim">Failed to load catalog.</p>';
+				}
+			}
+
+			async function loadReviews(title){
+				const list = document.getElementById(`reviews-${encodeURIComponent(title)}`);
+				try {
+					const res = await fetch(`/api/reviews?title=${encodeURIComponent(title)}`);
+					const reviews = await res.json();
+					if (!Array.isArray(reviews) || !reviews.length) { list.innerHTML = '<p class="dim">No reviews yet.</p>'; return; }
+					list.innerHTML = reviews.map(r => `<p class=\"review\"><strong>${r.email}</strong> — ${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}<br/>${r.text || ''}</p>`).join('');
+				} catch (err) {
+					list.innerHTML = '<p class="dim">Failed to load reviews.</p>';
+				}
+			}
+
+			async function submitReview(titleEnc){
+				const title = decodeURIComponent(titleEnc);
+				const email = localStorage.getItem('userEmail');
+				const msg = document.getElementById(`msg-${titleEnc}`);
+				if (!email) { msg.textContent = 'Please log in to add a review.'; return; }
+				const textEl = document.getElementById(`text-${titleEnc}`);
+				const ratingEl = document.getElementById(`rating-${titleEnc}`);
+				const payload = { title, email, text: textEl.value.trim(), rating: Number(ratingEl.value) };
+				try {
+					const res = await fetch('/api/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+					if (!res.ok) {
+						const body = await res.json().catch(() => ({}));
+						throw new Error((body.message || 'Failed to submit review') + (body.error ? ` — ${body.error}` : ''));
+					}
+					textEl.value = '';
+					msg.textContent = 'Review submitted!';
+					await loadReviews(title);
+				} catch (err) {
+					msg.textContent = err.message || 'Failed to submit review';
+				}
+			}
+
+			updateAuthUI();
+			load();
+		</script>
+	</body>
+	</html>
