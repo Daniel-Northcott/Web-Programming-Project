@@ -50,34 +50,50 @@ app.post('/api/movies/import', async (_, res) => {
 
 app.post('/api/users/register', async (req, res) => {
 	try {
-		const { email, password } = req.body;
-		if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
+		const { firstName, lastName, username, email, password } = req.body;
+		if (!username || !email || !password) return res.status(400).json({ message: 'username, email, and password required' });
 
-		const existing = await User.findOne({ email });
-		if (existing) return res.status(409).json({ message: 'User already exists' });
+		const existingEmail = await User.findOne({ email });
+		if (existingEmail) return res.status(409).json({ message: 'Email already in use' });
+		const existingUsername = await User.findOne({ username });
+		if (existingUsername) return res.status(409).json({ message: 'Username already taken' });
 
 		const hashed = await bcrypt.hash(password, 10);
-		const user = await User.create({ email, password: hashed });
-		return res.status(201).json({ id: user._id, email: user.email });
+		const user = await User.create({ firstName, lastName, username, email, password: hashed });
+		return res.status(201).json({ id: user._id, username: user.username });
 	} catch (err) {
-		return res.status(500).json({ message: 'Registration failed' });
+		return res.status(500).json({ message: 'Registration failed', error: err?.message });
 	}
 });
 
 app.post('/api/users/login', async (req, res) => {
 	try {
-		const { email, password } = req.body;
-		if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
+		const { username, email, password } = req.body;
+		if ((!username && !email) || !password) return res.status(400).json({ message: 'username or email and password required' });
 
-		const user = await User.findOne({ email });
+		const user = await User.findOne(username ? { username } : { email });
 		if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
 		const ok = await bcrypt.compare(password, user.password);
 		if (!ok) return res.status(401).json({ message: 'Invalid credentials' });
 
-		return res.json({ id: user._id, email: user.email });
+		// Backfill username for legacy users that were created before username field existed
+		if (!user.username) {
+			const derived = user.email ? user.email.split('@')[0].toLowerCase() : `user${user._id.toString().slice(-4)}`;
+			// Ensure uniqueness if collision
+			let finalName = derived;
+			let collisionCount = 0;
+			while (await User.findOne({ username: finalName })) {
+				collisionCount += 1;
+				finalName = `${derived}${collisionCount}`;
+			}
+			user.username = finalName;
+			await user.save();
+		}
+
+		return res.json({ id: user._id, username: user.username });
 	} catch (err) {
-		return res.status(500).json({ message: 'Login failed' });
+		return res.status(500).json({ message: 'Login failed', error: err?.message });
 	}
 });
 
@@ -95,9 +111,9 @@ app.get('/api/reviews', async (req, res) => {
 
 app.post('/api/reviews', async (req, res) => {
 	try {
-		const { title, email, rating, text } = req.body;
-		if (!title || !email || !rating) return res.status(400).json({ message: 'title, email, and rating are required' });
-		const review = await Review.create({ title, email, rating: Number(rating), text });
+		const { title, username, rating, text } = req.body;
+		if (!title || !username || !rating) return res.status(400).json({ message: 'title, username, and rating are required' });
+		const review = await Review.create({ title, username, rating: Number(rating), text });
 		res.status(201).json(review);
 	} catch (err) {
 		console.error('POST /api/reviews error:', err);

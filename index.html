@@ -128,14 +128,14 @@
 
 			// Auth UI state: show email and toggle Login/Logout
 			function updateAuthUI(){
-				const email = localStorage.getItem('userEmail');
+				const username = localStorage.getItem('userName');
 				const emailEl = document.getElementById('userEmail');
 				const loginBtn = document.getElementById('loginBtn');
-				if (email) {
-					emailEl.textContent = email;
+				if (username) {
+					emailEl.textContent = username;
 					loginBtn.textContent = 'Logout';
 					loginBtn.removeAttribute('href');
-					loginBtn.onclick = () => { localStorage.removeItem('userEmail'); updateAuthUI(); };
+					loginBtn.onclick = () => { localStorage.removeItem('userName'); updateAuthUI(); };
 				} else {
 					emailEl.textContent = '';
 					loginBtn.textContent = 'Login';

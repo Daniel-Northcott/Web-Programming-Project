@@ -21,13 +21,27 @@
 	</head>
 	<body>
 		<div class="container">
-			<h1 style="margin:0 0 12px">Welcome back</h1>
-			<p style="margin:0 0 20px;color:#9ca3af">Log in or create an account to save reviews.</p>
+			<h1 style="margin:0 0 12px" id="formTitle">Welcome back</h1>
+			<p style="margin:0 0 20px;color:#9ca3af" id="formSubtitle">Log in or create an account to save reviews.</p>
 			<div class="card">
 				<form id="authForm">
-					<div class="row">
+					<div id="registerExtra" style="display:none">
+						<div class="row">
+							<label for="firstName">First Name</label>
+							<input id="firstName" name="firstName" type="text" />
+						</div>
+						<div class="row">
+							<label for="lastName">Last Name</label>
+							<input id="lastName" name="lastName" type="text" />
+						</div>
+						<div class="row">
+							<label for="username">Username</label>
+							<input id="username" name="username" type="text" />
+						</div>
+					</div>
+					<div class="row" id="emailRow">
 						<label for="email">Email</label>
-						<input id="email" name="email" type="email" required />
+						<input id="email" name="email" type="email" />
 					</div>
 					<div class="row">
 						<label for="password">Password</label>
@@ -35,7 +49,7 @@
 					</div>
 					<div class="actions">
 						<button type="submit" class="primary" id="loginBtn">Login</button>
-						<button type="button" class="secondary" id="registerBtn">Register</button>
+						<button type="button" class="secondary" id="toggleModeBtn">Register</button>
 						<a href="index.html" style="margin-left:auto;align-self:center;">Back to home</a>
 					</div>
 					<div class="msg" id="msg"></div>
@@ -46,7 +60,11 @@
 			const form = document.getElementById('authForm');
 			const msg = document.getElementById('msg');
 			const loginBtn = document.getElementById('loginBtn');
-			const registerBtn = document.getElementById('registerBtn');
+			const toggleModeBtn = document.getElementById('toggleModeBtn');
+			const extra = document.getElementById('registerExtra');
+			const formTitle = document.getElementById('formTitle');
+			const formSubtitle = document.getElementById('formSubtitle');
+			let mode = 'login'; // or 'register'
 
 			function setMessage(text, isError=false){
 				msg.textContent = text;
@@ -60,29 +78,52 @@
 				return body;
 			}
 
+			toggleModeBtn.addEventListener('click', () => {
+				mode = mode === 'login' ? 'register' : 'login';
+				if (mode === 'register') {
+					extra.style.display = 'block';
+					loginBtn.textContent = 'Create Account';
+					toggleModeBtn.textContent = 'Have an account?';
+					formTitle.textContent = 'Create your account';
+					formSubtitle.textContent = 'Fill in details to register.';
+					setMessage('');
+				} else {
+					extra.style.display = 'none';
+					loginBtn.textContent = 'Login';
+					toggleModeBtn.textContent = 'Register';
+					formTitle.textContent = 'Welcome back';
+					formSubtitle.textContent = 'Log in or create an account to save reviews.';
+					setMessage('');
+				}
+			});
+
 			form.addEventListener('submit', async (e) => {
 				e.preventDefault();
 				const email = form.email.value.trim();
 				const password = form.password.value;
+				const username = (form.username ? form.username.value.trim() : '').toLowerCase();
+				const firstName = form.firstName ? form.firstName.value.trim() : '';
+				const lastName = form.lastName ? form.lastName.value.trim() : '';
 				try {
-					setMessage('Signing in...');
-					  const u = await post('/api/users/login', { email, password });
-					  localStorage.setItem('userEmail', u.email);
-					  setMessage('Logged in successfully');
-					  // Redirect to home after login
-					  window.location.href = 'index.html';
-				} catch (err) {
-					setMessage(err.message, true);
-				}
-			});
-
-			registerBtn.addEventListener('click', async () => {
-				const email = form.email.value.trim();
-				const password = form.password.value;
-				try {
-					setMessage('Creating account...');
-					await post('/api/users/register', { email, password });
-					setMessage('Account created. You can now log in.');
+					if (mode === 'login') {
+						setMessage('Signing in...');
+						const u = await post('/api/users/login', { username, email, password });
+						if (!u.username) throw new Error('Login succeeded but username missing; please register a new account.');
+						localStorage.setItem('userName', u.username);
+						setMessage('Logged in successfully');
+						window.location.href = 'index.html';
+					} else {
+						setMessage('Creating account...');
+						if (!username) throw new Error('Username required');
+						await post('/api/users/register', { firstName, lastName, username, email, password });
+						setMessage('Account created. You can now log in.');
+						mode = 'login';
+						extra.style.display = 'none';
+						loginBtn.textContent = 'Login';
+						toggleModeBtn.textContent = 'Register';
+						formTitle.textContent = 'Welcome back';
+						formSubtitle.textContent = 'Log in or create an account to save reviews.';
+					}
 				} catch (err) {
 					setMessage(err.message, true);
 				}

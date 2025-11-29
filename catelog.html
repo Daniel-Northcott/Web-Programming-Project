@@ -40,14 +40,14 @@
 		</div>
 		<script>
 			function updateAuthUI(){
-				const email = localStorage.getItem('userEmail');
+				const username = localStorage.getItem('userName');
 				const loginLink = document.getElementById('loginLink');
 				const emailEl = document.getElementById('userEmail');
-				if (email) {
-					emailEl.textContent = email;
+				if (username) {
+					emailEl.textContent = username;
 					loginLink.textContent = 'Logout';
 					loginLink.removeAttribute('href');
-					loginLink.onclick = () => { localStorage.removeItem('userEmail'); updateAuthUI(); };
+					loginLink.onclick = () => { localStorage.removeItem('userName'); updateAuthUI(); };
 				} else {
 					emailEl.textContent = '';
 					loginLink.textContent = 'Login';
@@ -109,7 +109,7 @@
 					const res = await fetch(`/api/reviews?title=${encodeURIComponent(title)}`);
 					const reviews = await res.json();
 					if (!Array.isArray(reviews) || !reviews.length) { list.innerHTML = '<p class="dim">No reviews yet.</p>'; return; }
-					list.innerHTML = reviews.map(r => `<p class=\"review\"><strong>${r.email}</strong> — ${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}<br/>${r.text || ''}</p>`).join('');
+					list.innerHTML = reviews.map(r => `<p class=\"review\"><strong>${r.username || r.email || 'anon'}</strong> — ${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}<br/>${r.text || ''}</p>`).join('');
 				} catch (err) {
 					list.innerHTML = '<p class="dim">Failed to load reviews.</p>';
 				}
@@ -117,12 +117,12 @@
 
 			async function submitReview(titleEnc){
 				const title = decodeURIComponent(titleEnc);
-				const email = localStorage.getItem('userEmail');
+				const username = localStorage.getItem('userName');
 				const msg = document.getElementById(`msg-${titleEnc}`);
-				if (!email) { msg.textContent = 'Please log in to add a review.'; return; }
+				if (!username) { msg.textContent = 'Please log in to add a review.'; return; }
 				const textEl = document.getElementById(`text-${titleEnc}`);
 				const ratingEl = document.getElementById(`rating-${titleEnc}`);
-				const payload = { title, email, text: textEl.value.trim(), rating: Number(ratingEl.value) };
+				const payload = { title, username, text: textEl.value.trim(), rating: Number(ratingEl.value) };
 				try {
 					const res = await fetch('/api/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
 					if (!res.ok) {
