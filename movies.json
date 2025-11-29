@@ -1,0 +1,17 @@
+"movies":{
+    "Inception": {
+        "director": "Christopher Nolan",
+        "year": 2010,
+        "genre": "Science Fiction"
+    },
+    "The Godfather": {
+        "director": "Francis Ford Coppola",
+        "year": 1972,
+        "genre": "Crime"
+    },
+    "Pulp Fiction": {
+        "director": "Quentin Tarantino",
+        "year": 1994,
+        "genre": "Crime"
+    }
+}

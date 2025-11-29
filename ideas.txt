@@ -1,0 +1,66 @@
+Pizza Ordering Website: -dan, max
+-Ordering (module)
+-cart
+-about
+-menu
+-contact (module)
+-login (module)
+
+Image Gallery (like an instagram/pintrest)
+-Users (module)
+-Image uploading (module)
+-Collections (modules)
+
+Blog (reddit):
+-Posts (module)
+-Login/users (module)
+-Pages (like a subreddit module)
+
+***WINNER***
+Movie discussion forum: -dan, max, ana
+-current movies (modules)
+-movie ratings (modules)
+-users (module)
+-reviews (module)
+***WINNER***
+Pages:
+-home (features movies, whats in theaters rn....); Max
+    - no user input
+-user login (module); Ana
+-contact (module); Max
+    - has a form
+
+-catalog ( movies, ratings, reviews) (module) Dan can start this page 
+Tasks:
+    Max:
+        - Home page
+        - Contact Pages
+        - Add 3 pictures
+        - Add 2 movies
+    Ana:
+        - User Login
+        - Add 3 pictures
+        - add 2 movies
+    Dan:
+        - Start catalog page
+        - Add 3 pictures
+        - Add 2 movies
+DUE: Finish by Tuesday 12/2 Meet at 11AM on teams
+
+
+-about (TBD IF WE NEED THIS)
+
+
+
+Fitness (tracker) -dan
+-body metrics (bio data)
+-excercises (modules)
+-progress tracker (module)
+
+GPA calculator -max
+-login (module)
+-courses (module)
+-grades (overall gpa)
+-rank (module)
+
+
