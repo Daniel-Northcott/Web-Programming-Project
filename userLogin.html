@@ -1,8 +1,5 @@
-<!doctype html>
-<html lang="en">
+<html>
 	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>User Login</title>
 		<style>
 			body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#0f172a; color:#e5e7eb; margin:0; }
@@ -25,6 +22,7 @@
 			<p style="margin:0 0 20px;color:#9ca3af" id="formSubtitle">Log in or create an account to save reviews.</p>
 			<div class="card">
 				<form id="authForm">
+					<!-- Registration-only fields wrapper (shown when mode === 'register') -->
 					<div id="registerExtra" style="display:none">
 						<div class="row">
 							<label for="firstName">First Name</label>
@@ -57,6 +55,8 @@
 			</div>
 		</div>
 		<script>
+			// Authentication form script: toggles between login and registration modes.
+			// On successful login sets localStorage userName and redirects to home.
 			const form = document.getElementById('authForm');
 			const msg = document.getElementById('msg');
 			const loginBtn = document.getElementById('loginBtn');
@@ -66,11 +66,24 @@
 			const formSubtitle = document.getElementById('formSubtitle');
 			let mode = 'login'; // or 'register'
 
+			/**
+			 * setMessage
+			 * Updates status text (success or error) below the form.
+			 * @param {string} text - Message to display
+			 * @param {boolean} isError - True for error styling
+			 */
 			function setMessage(text, isError=false){
 				msg.textContent = text;
 				msg.style.color = isError ? '#fca5a5' : '#9ca3af';
 			}
 
+			/**
+			 * post
+			 * Helper to send JSON POST requests.
+			 * @param {string} url - Endpoint URL
+			 * @param {object} data - Payload object
+			 * @returns {Promise<object>} - Parsed JSON response
+			 */
 			async function post(url, data){
 				const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
 				const body = await res.json().catch(() => ({}));
@@ -78,6 +91,7 @@
 				return body;
 			}
 
+			// Toggle between login and register modes: show/hide extra fields, adjust button labels and headings.
 			toggleModeBtn.addEventListener('click', () => {
 				mode = mode === 'login' ? 'register' : 'login';
 				if (mode === 'register') {
@@ -97,6 +111,7 @@
 				}
 			});
 
+			// Form submit handler: executes login or registration flow based on current mode.
 			form.addEventListener('submit', async (e) => {
 				e.preventDefault();
 				const email = form.email.value.trim();

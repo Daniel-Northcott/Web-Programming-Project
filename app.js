@@ -1,3 +1,15 @@
+/**
+ * Application Entry Point
+ * -----------------------
+ * Express server providing static pages and JSON APIs for:
+ *  - Movies: listing and import from local JSON file
+ *  - Users: registration and login with bcrypt password hashing
+ *  - Reviews: create and list movie reviews
+ *  - Health: simple status check of server and MongoDB connection
+ *
+ * Authentication Strategy: lightweight, stateless; client stores username in localStorage.
+ * Legacy Handling: login route backfills missing usernames for early accounts created before username field existed.
+ */
 require('dotenv').config();
 const path = require('path');
 const express = require('express');
@@ -22,7 +34,13 @@ app.get('/contact', (_, res) => res.sendFile(path.join(__dirname, 'contact.html'
 app.get('/about', (_, res) => res.sendFile(path.join(__dirname, 'about.html')));
 app.get('/userLogin', (_, res) => res.sendFile(path.join(__dirname, 'userLogin.html')));
 
+// -----------------------------------------------------------------------------
 // Movies API
+// -----------------------------------------------------------------------------
+/**
+ * GET /api/movies
+ * Returns all movies sorted by title.
+ */
 app.get('/api/movies', async (_, res) => {
 	try {
 		const movies = await Movie.find({}).sort({ title: 1 }).lean();
@@ -32,7 +50,10 @@ app.get('/api/movies', async (_, res) => {
 	}
 });
 
-// Import movies from movies.json into MongoDB
+/**
+ * POST /api/movies/import
+ * Imports movies from local movies.json file; upserts each entry by title.
+ */
 app.post('/api/movies/import', async (_, res) => {
 	try {
 		const raw = fs.readFileSync(path.join(__dirname, 'movies.json'), 'utf-8');
@@ -48,6 +69,14 @@ app.post('/api/movies/import', async (_, res) => {
 	}
 });
 
+// -----------------------------------------------------------------------------
+// User Registration & Login
+// -----------------------------------------------------------------------------
+/**
+ * POST /api/users/register
+ * Validates required fields, checks uniqueness, hashes password, stores new user.
+ * Responds with minimal identifying info (id, username).
+ */
 app.post('/api/users/register', async (req, res) => {
 	try {
 		const { firstName, lastName, username, email, password } = req.body;
@@ -66,6 +95,11 @@ app.post('/api/users/register', async (req, res) => {
 	}
 });
 
+/**
+ * POST /api/users/login
+ * Allows login by username OR email. Backfills missing username for legacy users.
+ * Responds with id and username.
+ */
 app.post('/api/users/login', async (req, res) => {
 	try {
 		const { username, email, password } = req.body;
@@ -97,7 +131,13 @@ app.post('/api/users/login', async (req, res) => {
 	}
 });
 
+// -----------------------------------------------------------------------------
 // Reviews API
+// -----------------------------------------------------------------------------
+/**
+ * GET /api/reviews?title=OptionalTitle
+ * Lists reviews globally or filtered by movie title (descending creation time).
+ */
 app.get('/api/reviews', async (req, res) => {
 	try {
 		const { title } = req.query;
@@ -109,6 +149,10 @@ app.get('/api/reviews', async (req, res) => {
 	}
 });
 
+/**
+ * POST /api/reviews
+ * Creates a new review (title, username, rating required). Rating coerced to Number.
+ */
 app.post('/api/reviews', async (req, res) => {
 	try {
 		const { title, username, rating, text } = req.body;
@@ -121,7 +165,13 @@ app.post('/api/reviews', async (req, res) => {
 	}
 });
 
-// Health endpoint to check server and DB connection
+// -----------------------------------------------------------------------------
+// Health Endpoint
+// -----------------------------------------------------------------------------
+/**
+ * GET /api/health
+ * Returns server status and current Mongo connection state for diagnostics.
+ */
 app.get('/api/health', async (_, res) => {
 	const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
 	const state = states[mongoose.connection.readyState] || String(mongoose.connection.readyState);
@@ -132,6 +182,11 @@ app.get('/api/health', async (_, res) => {
 	});
 });
 
+/**
+ * start
+ * Initializes MongoDB connection (if URI provided) then starts Express server.
+ * Logs connection outcomes to console.
+ */
 async function start() {
 	const uri = process.env.MONGODB_URI;
 	if (!uri) {

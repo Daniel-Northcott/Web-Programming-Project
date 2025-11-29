@@ -1,16 +1,21 @@
-<!doctype html>
-<html lang="en">
+<html>
 	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>Catalog — Movie Reviews</title>
+		<!--
+			Page: Catalog
+			Purpose: Displays all movies (fetched from /api/movies) with associated reviews and a form to submit new reviews.
+			Auth: Shows logged-in username; logout handled client-side via localStorage.
+			Layout: Three-column grid per movie (poster | details | reviews + form).
+			Accessibility: container uses aria-live for dynamic movie list updates.
+		-->
 		<style>
+			/* Basic global styles */
 			body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#0f172a; color:#e5e7eb; margin:0; }
 			a { color:#22d3ee; text-decoration:none; }
 			.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 			nav { padding: 12px 0; }
 			h1 { margin: 12px 0 18px; }
-			/* Full-width stacked list with poster + details + reviews */
+			/* Movie list layout */
 			.list { display:flex; flex-direction: column; gap: 24px; }
 			.row { display:grid; grid-template-columns: 180px 1fr 320px; gap: 24px; align-items: start; padding: 20px 0; border-bottom: 1px solid rgba(229,231,235,.08); }
 			.poster { width: 180px; height: 270px; border-radius: 8px; object-fit: cover; background:#0b1220; border:1px solid rgba(229,231,235,.06); }
@@ -39,6 +44,11 @@
 			<div id="grid" class="list" aria-live="polite"></div>
 		</div>
 		<script>
+			/**
+			 * updateAuthUI
+			 * Reflects authentication state in navigation: shows username and converts Login link to Logout.
+			 * Source of truth is localStorage key 'userName'.
+			 */
 			function updateAuthUI(){
 				const username = localStorage.getItem('userName');
 				const loginLink = document.getElementById('loginLink');
@@ -56,6 +66,11 @@
 				}
 			}
 
+			/**
+			 * load
+			 * Fetches all movies from /api/movies and renders each as a row with poster, details, and review panel.
+			 * After rendering list, triggers loading of reviews per title.
+			 */
 			async function load(){
 				try {
 					const res = await fetch('/api/movies');
@@ -103,6 +118,11 @@
 				}
 			}
 
+			/**
+			 * loadReviews(title)
+			 * Retrieves reviews for a given movie title and renders them.
+			 * Fallback author display: username OR legacy email OR 'anon'.
+			 */
 			async function loadReviews(title){
 				const list = document.getElementById(`reviews-${encodeURIComponent(title)}`);
 				try {
@@ -115,6 +135,11 @@
 				}
 			}
 
+			/**
+			 * submitReview(titleEnc)
+			 * Posts a new review for a movie. Requires user to be logged in (localStorage userName).
+			 * On success clears textarea and reloads review list; on failure shows error message.
+			 */
 			async function submitReview(titleEnc){
 				const title = decodeURIComponent(titleEnc);
 				const username = localStorage.getItem('userName');
@@ -137,6 +162,7 @@
 				}
 			}
 
+			/* Initialize page state */
 			updateAuthUI();
 			load();
 		</script>

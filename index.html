@@ -1,9 +1,12 @@
-<!doctype html>
-<html lang="en">
+<html>
 	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>Movie Reviews — Home</title>
+		<!--
+			Page: Home / Landing
+			Purpose: Introduces the site and provides navigation to catalog, about, and contact pages.
+			Features: Hero section with CTA, feature summary cards, dynamic footer year, auth-aware nav.
+			Auth Handling: Navigation reflects login state using localStorage key 'userName'.
+		-->
 		<style>
 			:root {
 				--bg: #0f172a;
@@ -123,10 +126,15 @@
 		</footer>
 
 		<script>
-			// Tiny enhancement: current year in footer
+			// Footer: inject current year for copyright
 			document.getElementById('year').textContent = new Date().getFullYear();
 
-			// Auth UI state: show email and toggle Login/Logout
+			/**
+			 * updateAuthUI
+			 * Purpose: Reflect authentication state in navigation.
+			 * Behavior: If logged in (localStorage userName exists) shows username and turns button into Logout.
+			 * On logout: clears userName and re-renders.
+			 */
 			function updateAuthUI(){
 				const username = localStorage.getItem('userName');
 				const emailEl = document.getElementById('userEmail');
