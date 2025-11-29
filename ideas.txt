@@ -47,8 +47,7 @@ Tasks:
         - Add 2 movies
 DUE: Finish by Tuesday 12/2 Meet at 11AM on teams
 
-
--about (TBD IF WE NEED THIS)
+- About (TBD IF WE NEED THIS)
 
 
 

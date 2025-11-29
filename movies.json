@@ -1,4 +1,4 @@
-"movies":{
+{"movies":{
     "Inception": {
         "director": "Christopher Nolan",
         "year": 2010,
@@ -14,4 +14,5 @@
         "year": 1994,
         "genre": "Crime"
     }
+}
 }
