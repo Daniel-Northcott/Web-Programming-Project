@@ -48,7 +48,7 @@
 					<div class="actions">
 						<button type="submit" class="primary" id="loginBtn">Login</button>
 						<button type="button" class="secondary" id="toggleModeBtn">Register</button>
-						<a href="index.html" style="margin-left:auto;align-self:center;">Back to home</a>
+						<a href="/" style="margin-left:auto;align-self:center;">Back to home</a>
 					</div>
 					<div class="msg" id="msg"></div>
 				</form>
@@ -126,7 +126,7 @@
 						if (!u.username) throw new Error('Login succeeded but username missing; please register a new account.');
 						localStorage.setItem('userName', u.username);
 						setMessage('Logged in successfully');
-						window.location.href = 'index.html';
+						window.location.href = '/';
 					} else {
 						setMessage('Creating account...');
 						if (!username) throw new Error('Username required');

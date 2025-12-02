@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Catalog — Movie Reviews</title>
+		<title>Catalog — Movie Addicts</title>
 		<!--
 			Page: Catalog
 			Purpose: Displays all movies (fetched from /api/movies) with associated reviews and a form to submit new reviews.
@@ -35,10 +35,10 @@
 	<body>
 		<div class="container">
 			<nav>
-				<a href="index.html">Home</a> ·
-				<a href="about.html">About</a> ·
-				<a href="contact.html">Contact</a> ·
-				<a id="loginLink" href="userLogin.html">Login</a> <span id="userEmail" class="dim" style="margin-left:8px"></span>
+				<a href="/">Home</a> ·
+				<a href="/about">About</a> ·
+				<a href="/contact">Contact</a> ·
+				<a id="loginLink" href="/userLogin">Login</a> <span id="userEmail" class="dim" style="margin-left:8px"></span>
 			</nav>
 			<h1>Catalog</h1>
 			<div id="grid" class="list" aria-live="polite"></div>
@@ -61,7 +61,7 @@
 				} else {
 					emailEl.textContent = '';
 					loginLink.textContent = 'Login';
-					loginLink.setAttribute('href', 'userLogin.html');
+					loginLink.setAttribute('href', '/userLogin');
 					loginLink.onclick = null;
 				}
 			}
@@ -79,7 +79,7 @@
 					if (!entries.length) { grid.innerHTML = '<p class="dim">No movies found.</p>'; return; }
 					grid.innerHTML = entries.map((m) => {
 						const title = m.title;
-						const img = m.image ? `Pictures/${m.image}` : '';
+						const img = m.image ? `/Pictures/${m.image}` : (m.poster ? (m.poster.startsWith('/') ? m.poster : `/${m.poster}`) : '');
 						const desc = m.description || '';
 						const year = m.year ? `${m.year}` : '';
 						const genre = m.genre || '';

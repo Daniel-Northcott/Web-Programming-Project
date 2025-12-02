@@ -16,6 +16,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
+const multer = require('multer');
 
 const User = require(path.join(__dirname, 'models', 'User.js'));
 const Review = require(path.join(__dirname, 'models', 'Review.js'));
@@ -59,6 +60,20 @@ function requireAdmin(req, res, next) {
 	if (token === ADMIN_TOKEN) return next();
 	return res.status(403).json({ message: 'Admin authorization required' });
 }
+
+// Multer storage for poster uploads
+const picturesDir = path.join(__dirname, 'Pictures');
+if (!fs.existsSync(picturesDir)) fs.mkdirSync(picturesDir, { recursive: true });
+const storage = multer.diskStorage({
+	destination: (_req, _file, cb) => cb(null, picturesDir),
+	filename: (_req, file, cb) => {
+		const ext = path.extname(file.originalname) || '.jpg';
+		const base = path.basename(file.originalname, ext).replace(/[^a-z0-9_-]/gi, '_');
+		const unique = `${base}-${Date.now()}${ext}`;
+		cb(null, unique);
+	}
+});
+const upload = multer({ storage });
 
 // -----------------------------------------------------------------------------
 // Movies API
@@ -233,12 +248,46 @@ app.post('/api/admin/movies', requireAdmin, async (req, res) => {
 	try {
 		const { title, year, genre, description, poster } = req.body || {};
 		if (!title) return res.status(400).json({ message: 'title required' });
-		const doc = { title, year, genre, description, poster };
+		const doc = { title };
+		if (year) doc.year = Number(year);
+		if (genre) doc.genre = genre;
+		if (description) doc.description = description;
+		// Normalize poster into canonical field `image` (filename only)
+		if (poster) {
+			const cleaned = String(poster).replace(/^\/?Pictures\//, '');
+			doc.image = cleaned;
+		}
 		await Movie.updateOne({ title }, { $set: doc }, { upsert: true });
 		const saved = await Movie.findOne({ title }).lean();
 		res.status(201).json(saved);
 	} catch (err) {
 		res.status(500).json({ message: 'Failed to add movie', error: err?.message });
+	}
+});
+
+/**
+ * POST /api/admin/movies/upload
+ * Multipart form: fields (title, year, genre, description) + file "poster".
+ * Saves file to /Pictures and stores poster path "/Pictures/<filename>".
+ */
+app.post('/api/admin/movies/upload', requireAdmin, upload.single('poster'), async (req, res) => {
+	try {
+		const { title, year, genre, description } = req.body || {};
+		if (!title) return res.status(400).json({ message: 'title required' });
+		let imageFilename;
+		if (req.file) {
+			imageFilename = req.file.filename; // store filename only
+		}
+		const doc = { title };
+		if (year) doc.year = Number(year);
+		if (genre) doc.genre = genre;
+		if (description) doc.description = description;
+		if (imageFilename) doc.image = imageFilename;
+		await Movie.updateOne({ title }, { $set: doc }, { upsert: true });
+		const saved = await Movie.findOne({ title }).lean();
+		res.status(201).json(saved);
+	} catch (err) {
+		res.status(500).json({ message: 'Failed to upload movie/poster', error: err?.message });
 	}
 });
 

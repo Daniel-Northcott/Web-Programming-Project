@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <head>
   <title>Admin Dashboard</title>
-  <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" />
   <style>
     .hidden { display: none; }
     header { margin-bottom: 1rem; }
@@ -19,6 +18,10 @@
   <header>
     <h1>Admin</h1>
     <p>Restricted area. Use only if you are the administrator.</p>
+    <p>
+      <a href="/">Go to Home</a>
+      <button id="logout-header" class="hidden" style="margin-left: 0.75rem;">Log Out</button>
+    </p>
   </header>
 
   <section id="login-section">
@@ -47,7 +50,7 @@
       </div>
       <div class="card">
         <h3>Add / Update Movie</h3>
-        <form id="add-movie-form">
+        <form id="add-movie-form" enctype="multipart/form-data">
           <label>Title
             <input type="text" id="movie-title" required />
           </label>
@@ -60,8 +63,8 @@
           <label>Description
             <textarea id="movie-description"></textarea>
           </label>
-          <label>Poster URL
-            <input type="url" id="movie-poster" />
+          <label>Poster Image
+            <input type="file" id="movie-poster" accept="image/*" />
           </label>
           <button type="submit">Save Movie</button>
           <p id="add-movie-msg"></p>
@@ -118,7 +121,6 @@
     async function adminFetch(url, opts = {}) {
       const token = getToken();
       const headers = Object.assign({}, opts.headers || {}, {
-        'Content-Type': 'application/json',
         Authorization: token ? `Bearer ${token}` : ''
       });
       const res = await fetch(url, { ...opts, headers });
@@ -155,10 +157,12 @@
       if (getToken()) {
         hide($('#login-section'));
         show($('#dashboard'));
+        show($('#logout-header'));
         refreshStats();
       } else {
         show($('#login-section'));
         hide($('#dashboard'));
+        hide($('#logout-header'));
       }
     }
 
@@ -191,22 +195,27 @@
       updateUIAuthState();
     });
 
+    $('#logout-header').addEventListener('click', () => {
+      clearToken();
+      updateUIAuthState();
+    });
+
     $('#refresh-stats').addEventListener('click', refreshStats);
 
     $('#add-movie-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       $('#add-movie-msg').textContent = '';
       try {
-        const payload = {
-          title: $('#movie-title').value.trim(),
-          year: Number($('#movie-year').value) || undefined,
-          genre: $('#movie-genre').value.trim() || undefined,
-          description: $('#movie-description').value.trim() || undefined,
-          poster: $('#movie-poster').value.trim() || undefined,
-        };
-        const saved = await adminFetch('/api/admin/movies', {
+        const fd = new FormData();
+        fd.append('title', $('#movie-title').value.trim());
+        if ($('#movie-year').value) fd.append('year', $('#movie-year').value);
+        if ($('#movie-genre').value.trim()) fd.append('genre', $('#movie-genre').value.trim());
+        if ($('#movie-description').value.trim()) fd.append('description', $('#movie-description').value.trim());
+        const file = $('#movie-poster').files[0];
+        if (file) fd.append('poster', file);
+        const saved = await adminFetch('/api/admin/movies/upload', {
           method: 'POST',
-          body: JSON.stringify(payload)
+          body: fd
         });
         $('#add-movie-msg').textContent = `Saved: ${saved.title}`;
         refreshStats();
