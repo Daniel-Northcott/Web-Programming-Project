@@ -5,7 +5,9 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "dump": "powershell -ExecutionPolicy Bypass -File ./scripts/dump.ps1",
+    "restore": "powershell -ExecutionPolicy Bypass -File ./scripts/restore.ps1"
   },
   "keywords": [],
   "author": "",
