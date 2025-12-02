@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<head>
+  <title>Admin Dashboard</title>
+  <style>
+    .hidden { display: none; }
+    header { margin-bottom: 1rem; }
+    .row { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .card { border: 1px solid #ddd; padding: 1rem; border-radius: 6px; flex: 1; min-width: 280px; }
+    label { display: block; margin-top: 0.5rem; }
+    input, select, textarea { width: 100%; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ddd; padding: 6px; }
+    th { background: #f7f7f7; }
+    .danger { color: #b00020; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Admin</h1>
+    <p>Restricted area. Use only if you are the administrator.</p>
+    <p>
+      <a href="/">Go to Home</a>
+      <button id="logout-header" class="hidden" style="margin-left: 0.75rem;">Log Out</button>
+    </p>
+  </header>
+
+  <section id="login-section">
+    <h2>Login</h2>
+    <form id="login-form">
+      <label>Username
+        <input type="text" id="admin-username" placeholder="admin" required />
+      </label>
+      <label>Password
+        <input type="password" id="admin-password" placeholder="password" required />
+      </label>
+      <button type="submit">Log In</button>
+      <p id="login-error" class="danger hidden"></p>
+    </form>
+  </section>
+
+  <section id="dashboard" class="hidden">
+    <div class="row">
+      <div class="card">
+        <h3>Overview</h3>
+        <p><strong>Users:</strong> <span id="stat-users">-</span></p>
+        <p><strong>Reviews:</strong> <span id="stat-reviews">-</span></p>
+        <p><strong>Movies:</strong> <span id="stat-movies">-</span></p>
+        <button id="refresh-stats">Refresh Stats</button>
+        <button id="logout">Log Out</button>
+      </div>
+      <div class="card">
+        <h3>Add / Update Movie</h3>
+        <form id="add-movie-form" enctype="multipart/form-data">
+          <label>Title
+            <input type="text" id="movie-title" required />
+          </label>
+          <label>Year
+            <input type="number" id="movie-year" />
+          </label>
+          <label>Genre
+            <input type="text" id="movie-genre" />
+          </label>
+          <label>Description
+            <textarea id="movie-description"></textarea>
+          </label>
+          <label>Poster Image
+            <input type="file" id="movie-poster" accept="image/*" />
+          </label>
+          <button type="submit">Save Movie</button>
+          <p id="add-movie-msg"></p>
+        </form>
+      </div>
+      <div class="card">
+        <h3>Remove Movie</h3>
+        <form id="remove-movie-form">
+          <label>By Title
+            <input type="text" id="remove-movie-title" placeholder="Exact title" />
+          </label>
+          <label>By ID
+            <input type="text" id="remove-movie-id" placeholder="Mongo _id" />
+          </label>
+          <button type="submit" class="danger">Delete</button>
+          <p id="remove-movie-msg" class="danger"></p>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Top Users by Reviews</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Reviews</th>
+            <th>Avg Rating</th>
+          </tr>
+        </thead>
+        <tbody id="user-stats-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <script>
+    const $ = (sel) => document.querySelector(sel);
+    const show = (el) => el.classList.remove('hidden');
+    const hide = (el) => el.classList.add('hidden');
+    const tokenKey = 'adminToken';
+
+    function getToken() {
+      return localStorage.getItem(tokenKey);
+    }
+
+    function setToken(t) {
+      localStorage.setItem(tokenKey, t);
+    }
+
+    function clearToken() {
+      localStorage.removeItem(tokenKey);
+    }
+
+    async function adminFetch(url, opts = {}) {
+      const token = getToken();
+      const headers = Object.assign({}, opts.headers || {}, {
+        Authorization: token ? `Bearer ${token}` : ''
+      });
+      const res = await fetch(url, { ...opts, headers });
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || res.status);
+      }
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) return res.json();
+      return res.text();
+    }
+
+    async function refreshStats() {
+      try {
+        const stats = await adminFetch('/api/admin/stats');
+        $('#stat-users').textContent = stats.userCount;
+        $('#stat-reviews').textContent = stats.reviewCount;
+        $('#stat-movies').textContent = stats.movieCount;
+        const body = $('#user-stats-body');
+        body.innerHTML = '';
+        (stats.users || []).forEach(u => {
+          const tr = document.createElement('tr');
+          const avg = (u.avgRating ?? 0).toFixed(2);
+          tr.innerHTML = `<td>${u._id}</td><td>${u.reviews}</td><td>${avg}</td>`;
+          body.appendChild(tr);
+        });
+      } catch (e) {
+        console.error(e);
+        alert('Failed to load stats');
+      }
+    }
+
+    function updateUIAuthState() {
+      if (getToken()) {
+        hide($('#login-section'));
+        show($('#dashboard'));
+        show($('#logout-header'));
+        refreshStats();
+      } else {
+        show($('#login-section'));
+        hide($('#dashboard'));
+        hide($('#logout-header'));
+      }
+    }
+
+    $('#login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      $('#login-error').classList.add('hidden');
+      try {
+        const username = $('#admin-username').value.trim();
+        const password = $('#admin-password').value.trim();
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(txt || 'Login failed');
+        }
+        const { token } = await res.json();
+        setToken(token);
+        updateUIAuthState();
+      } catch (err) {
+        $('#login-error').textContent = 'Invalid credentials';
+        $('#login-error').classList.remove('hidden');
+      }
+    });
+
+    $('#logout').addEventListener('click', () => {
+      clearToken();
+      updateUIAuthState();
+    });
+
+    $('#logout-header').addEventListener('click', () => {
+      clearToken();
+      updateUIAuthState();
+    });
+
+    $('#refresh-stats').addEventListener('click', refreshStats);
+
+    $('#add-movie-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      $('#add-movie-msg').textContent = '';
+      try {
+        const fd = new FormData();
+        fd.append('title', $('#movie-title').value.trim());
+        if ($('#movie-year').value) fd.append('year', $('#movie-year').value);
+        if ($('#movie-genre').value.trim()) fd.append('genre', $('#movie-genre').value.trim());
+        if ($('#movie-description').value.trim()) fd.append('description', $('#movie-description').value.trim());
+        const file = $('#movie-poster').files[0];
+        if (file) fd.append('poster', file);
+        const saved = await adminFetch('/api/admin/movies/upload', {
+          method: 'POST',
+          body: fd
+        });
+        $('#add-movie-msg').textContent = `Saved: ${saved.title}`;
+        refreshStats();
+      } catch (err) {
+        $('#add-movie-msg').textContent = 'Failed to save movie';
+      }
+    });
+
+    $('#remove-movie-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      $('#remove-movie-msg').textContent = '';
+      try {
+        const id = $('#remove-movie-id').value.trim();
+        const title = $('#remove-movie-title').value.trim();
+        let url = '/api/admin/movies/placeholder';
+        if (id) {
+          url = `/api/admin/movies/${encodeURIComponent(id)}`;
+        }
+        if (!id && !title) throw new Error('Provide id or title');
+        const res = await adminFetch(`${url}${title ? `?title=${encodeURIComponent(title)}` : ''}`, {
+          method: 'DELETE'
+        });
+        $('#remove-movie-msg').textContent = `Deleted: ${res.deletedCount}`;
+        refreshStats();
+      } catch (err) {
+        $('#remove-movie-msg').textContent = 'Failed to delete movie';
+      }
+    });
+
+    // init
+    updateUIAuthState();
+  </script>
+</body>
+</html>

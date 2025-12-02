@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Movie Reviews — Home</title>
+		<title>Movie Addicts — Home</title>
 		<!--
 			Page: Home / Landing
 			Purpose: Introduces the site and provides navigation to catalog, about, and contact pages.
@@ -75,15 +75,15 @@
 	<body>
 		<nav class="nav">
 			<div class="container nav-inner">
-				<a class="logo" href="index.html">Movie Reviews</a>
+				<a class="logo" href="/">Movie Addicts</a>
 				<div class="nav-actions">
 					<span id="userEmail" class="user" aria-live="polite"></span>
 					<ul class="nav-links">
-						<li><a href="catelog.html">Catalog</a></li>
-						<li><a href="about.html">About</a></li>
-						<li><a href="contact.html">Contact</a></li>
+						<li><a href="/catelog">Catalog</a></li>
+						<li><a href="/about">About</a></li>
+						<li><a href="/contact">Contact</a></li>
 					</ul>
-					<a id="loginBtn" class="btn" href="userLogin.html" title="User Login">Login</a>
+					<a id="loginBtn" class="btn" href="/userLogin" title="User Login">Login</a>
 				</div>
 			</div>
 		</nav>
@@ -96,7 +96,7 @@
 						Browse our up-to-date catalog of current films, compare ratings,
 						and read reviews from viewers like you.
 					</p>
-					<a class="btn" href="catelog.html">Browse Catalog</a>
+					<a class="btn" href="/catelog">Browse Catalog</a>
 				</div>
 			</section>
 
@@ -120,8 +120,8 @@
 
 		<footer>
 			<div class="container footer-inner">
-				<small>&copy; <span id="year"></span> Movie Reviews</small>
-				<small><a href="contact.html">Get in touch</a></small>
+				<small>&copy; <span id="year"></span> Movie Addicts</small>
+				<small><a href="/contact">Get in touch</a></small>
 			</div>
 		</footer>
 
@@ -147,7 +147,7 @@
 				} else {
 					emailEl.textContent = '';
 					loginBtn.textContent = 'Login';
-					loginBtn.setAttribute('href', 'userLogin.html');
+					loginBtn.setAttribute('href', '/userLogin');
 					loginBtn.onclick = null;
 				}
 			}

@@ -5,7 +5,9 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "nodemon app.js",
+    "dump": "powershell -ExecutionPolicy Bypass -File ./scripts/dump.ps1",
+    "restore": "powershell -ExecutionPolicy Bypass -File ./scripts/restore.ps1"
   },
   "keywords": [],
   "author": "",
@@ -14,7 +16,8 @@
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "mongoose": "^8.6.3"
+    "mongoose": "^8.6.3",
+    "multer": "^2.0.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"

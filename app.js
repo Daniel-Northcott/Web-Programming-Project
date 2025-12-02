@@ -16,6 +16,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
+const multer = require('multer');
 
 const User = require(path.join(__dirname, 'models', 'User.js'));
 const Review = require(path.join(__dirname, 'models', 'Review.js'));
@@ -23,6 +24,9 @@ const Movie = require(path.join(__dirname, 'models', 'Movie.js'));
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'password';
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'admin-token';
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -33,6 +37,43 @@ app.get('/catelog', (_, res) => res.sendFile(path.join(__dirname, 'catelog.html'
 app.get('/contact', (_, res) => res.sendFile(path.join(__dirname, 'contact.html')));
 app.get('/about', (_, res) => res.sendFile(path.join(__dirname, 'about.html')));
 app.get('/userLogin', (_, res) => res.sendFile(path.join(__dirname, 'userLogin.html')));
+app.get('/admin', (_, res) => res.sendFile(path.join(__dirname, 'admin.html')));
+
+// -----------------------------------------------------------------------------
+// Admin Auth + Middleware
+// -----------------------------------------------------------------------------
+/**
+ * POST /api/admin/login
+ * Simple credential check against env or defaults; returns a bearer token.
+ */
+app.post('/api/admin/login', (req, res) => {
+	const { username, password } = req.body || {};
+	if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+		return res.json({ token: ADMIN_TOKEN });
+	}
+	return res.status(401).json({ message: 'Invalid admin credentials' });
+});
+
+function requireAdmin(req, res, next) {
+	const auth = req.headers.authorization || '';
+	const token = auth.startsWith('Bearer ') ? auth.slice('Bearer '.length) : null;
+	if (token === ADMIN_TOKEN) return next();
+	return res.status(403).json({ message: 'Admin authorization required' });
+}
+
+// Multer storage for poster uploads
+const picturesDir = path.join(__dirname, 'Pictures');
+if (!fs.existsSync(picturesDir)) fs.mkdirSync(picturesDir, { recursive: true });
+const storage = multer.diskStorage({
+	destination: (_req, _file, cb) => cb(null, picturesDir),
+	filename: (_req, file, cb) => {
+		const ext = path.extname(file.originalname) || '.jpg';
+		const base = path.basename(file.originalname, ext).replace(/[^a-z0-9_-]/gi, '_');
+		const unique = `${base}-${Date.now()}${ext}`;
+		cb(null, unique);
+	}
+});
+const upload = multer({ storage });
 
 // -----------------------------------------------------------------------------
 // Movies API
@@ -162,6 +203,111 @@ app.post('/api/reviews', async (req, res) => {
 	} catch (err) {
 		console.error('POST /api/reviews error:', err);
 		res.status(500).json({ message: 'Failed to add review', error: err?.message });
+	}
+});
+
+// -----------------------------------------------------------------------------
+// Admin APIs
+// -----------------------------------------------------------------------------
+/**
+ * GET /api/admin/stats
+ * Returns user count, review count, movie count, and per-user stats.
+ */
+app.get('/api/admin/stats', requireAdmin, async (_, res) => {
+	try {
+		const [userCount, reviewCount, movieCount] = await Promise.all([
+			User.countDocuments({}),
+			Review.countDocuments({}),
+			Movie.countDocuments({}),
+		]);
+
+		// per-user stats: number of reviews and average rating
+		const agg = await Review.aggregate([
+			{
+				$group: {
+					_id: '$username',
+					reviews: { $sum: 1 },
+					avgRating: { $avg: '$rating' },
+				},
+			},
+			{ $sort: { reviews: -1 } },
+			{ $limit: 50 },
+		]);
+
+		res.json({ userCount, reviewCount, movieCount, users: agg });
+	} catch (err) {
+		res.status(500).json({ message: 'Failed to load admin stats', error: err?.message });
+	}
+});
+
+/**
+ * POST /api/admin/movies
+ * Adds a movie (title required). Upserts by title.
+ */
+app.post('/api/admin/movies', requireAdmin, async (req, res) => {
+	try {
+		const { title, year, genre, description, poster } = req.body || {};
+		if (!title) return res.status(400).json({ message: 'title required' });
+		const doc = { title };
+		if (year) doc.year = Number(year);
+		if (genre) doc.genre = genre;
+		if (description) doc.description = description;
+		// Normalize poster into canonical field `image` (filename only)
+		if (poster) {
+			const cleaned = String(poster).replace(/^\/?Pictures\//, '');
+			doc.image = cleaned;
+		}
+		await Movie.updateOne({ title }, { $set: doc }, { upsert: true });
+		const saved = await Movie.findOne({ title }).lean();
+		res.status(201).json(saved);
+	} catch (err) {
+		res.status(500).json({ message: 'Failed to add movie', error: err?.message });
+	}
+});
+
+/**
+ * POST /api/admin/movies/upload
+ * Multipart form: fields (title, year, genre, description) + file "poster".
+ * Saves file to /Pictures and stores poster path "/Pictures/<filename>".
+ */
+app.post('/api/admin/movies/upload', requireAdmin, upload.single('poster'), async (req, res) => {
+	try {
+		const { title, year, genre, description } = req.body || {};
+		if (!title) return res.status(400).json({ message: 'title required' });
+		let imageFilename;
+		if (req.file) {
+			imageFilename = req.file.filename; // store filename only
+		}
+		const doc = { title };
+		if (year) doc.year = Number(year);
+		if (genre) doc.genre = genre;
+		if (description) doc.description = description;
+		if (imageFilename) doc.image = imageFilename;
+		await Movie.updateOne({ title }, { $set: doc }, { upsert: true });
+		const saved = await Movie.findOne({ title }).lean();
+		res.status(201).json(saved);
+	} catch (err) {
+		res.status(500).json({ message: 'Failed to upload movie/poster', error: err?.message });
+	}
+});
+
+/**
+ * DELETE /api/admin/movies/:id
+ * Removes a movie by Mongo _id. Also optionally supports `?title=`.
+ */
+app.delete('/api/admin/movies/:id', requireAdmin, async (req, res) => {
+	try {
+		const { id } = req.params;
+		const { title } = req.query;
+		let result;
+		if (title) {
+			result = await Movie.deleteOne({ title });
+		} else {
+			result = await Movie.deleteOne({ _id: id });
+		}
+		res.json({ deletedCount: result.deletedCount });
+	} catch (err) {
+		res.status(500).json({ message: 'Failed to delete movie', error: err?.message });
 	}
 });
 
