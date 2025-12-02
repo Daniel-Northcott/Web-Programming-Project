@@ -1,18 +1,139 @@
 <html>
 	<head>
 		<title>About — Movie Addicts</title>
-		<!-- Page: About | Purpose: Brief description of the application -->
+		<!-- Match Catalog Page Styling -->
+	<style>
+		/* following catalog's style */
+		body { 
+			font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+			background:#0f172a; 
+			color:#e5e7eb; 
+			margin:0; 
+		}
+		
+		a {
+			color:#22d3ee;
+			text-decoration:none; 
+		}
+
+		.container { 
+			max-width: 900px; 
+			margin: 0 auto; padding: 
+			0 24px; 
+		}
+
+		nav {
+			padding: 12px 0;
+		}
+
+		h1 { 
+			margin: 12px 0 18px; 
+		}
+
+		.section {
+			background:#111827;
+			border:1px solid rgba(229,231,235,.06);
+			border-radius:10px;
+			padding:20px;
+			margin-bottom:24px;
+		}
+
+		.sub {
+			font-size:18px;
+			font-weight:600;
+			margin-bottom:10px;
+			color:#f1f5f9;
+		}
+
+		.text {
+			color:#cbd5e1;
+			text-indent: 10px;
+		 }
+
+		li {
+			margin-bottom: 5px;
+		}
+		.team { 
+			display:flex; gap:20px; margin-top:12px; flex-wrap:wrap; 
+		}
+
+		.card {
+			background:#0b1220; 
+			border-radius:10px; 
+			border:1px solid rgba(229,231,235,.06);
+			padding:14px;
+			width:240px;
+		}
+
+		.card h3 { 
+			margin:0 
+			0 6px; 
+			color:#22d3ee; 
+		}
+
+		.dim { 
+			color:#94a3b8; 
+			font-size:14px;
+			text-align: center;
+		}
+	</style>
 	</head>
 	<body>
-		<!-- Primary navigation -->
-		<nav>
-			<a href="/">Home</a> ·
-			<a href="/catelog">Catalog</a> ·
-			<a href="/contact">Contact</a> ·
-			<a href="/userLogin">Login</a>
-		</nav>
-		<h1>About</h1>
-		<p>This site catalogs current movies with ratings and reviews.</p>
-		<!-- You can expand this section with team info, tech stack, etc. -->
+		<div class="container">
+			<!-- Navigation bar (same as catalog) -->
+			<nav>
+				<a href="index.html">Home</a> ·
+				<a href="catalog.html">Catalog</a> ·
+				<a href="contact.html">Contact</a> ·
+				<a href="userLogin.html">User</a> 
+				<span id="userEmail" class="dim" style="margin-left:8px"></span>
+			</nav>
+
+			<!-- Page: About | Purpose: Brief description of the application -->
+			<h1>About</h1>
+			<p>This website catalogs current movies with ratings and reviews.</p>
+
+			<div class = "section">
+				<div class = "sub"> What is Movie Addicts? </div>
+				<p class = "text">
+					Movie Addicts is where users can browse current movies, read community reviews, 
+					rate films, and have discussions.
+				</p>
+			</div>
+
+			<div class = "section">
+				<div class="sub"> Project Modules </div>
+					<ul>
+						<li>Users: Login, registration, sessions, and profile handling.</li>
+						<li>Movies: A database of current movies with posters and details.</li>
+						<li>Ratings: Allows users to rate films from 1 to 5 stars.</li>
+						<li>Reviews Module: users can write, read, and interact with movie reviews.</li>
+					</ul>
+				</div>
+			</div>
+
+			<!-- Purpose: Brief description of Team Members -->
+			<div class = "section">
+				<div class="sub"> The Team </div>
+					<div class="team">
+						<div class="card">
+						<h3>Dan</h3>
+						<!-- add headshots <img src "img" .... -->
+						<!-- REMEMBER!! - descriptions to be updated -->
+						<p class="dim">Catalog & Movie Module</p>
+						</div>
+						<div class="card">
+							<h3>Max</h3>
+							<p class="dim"> Contact & User Module</p>
+						</div>
+						<div class="card">
+							<h3>Ana</h3>
+							<p class="dim">About Page & Documentation</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+			<!-- TO DO: tech stack, etc. -->
 	</body>
 	</html>
