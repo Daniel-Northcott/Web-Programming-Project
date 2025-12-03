@@ -1,26 +1,29 @@
 <!DOCTYPE html>
 <head>
   <title>Admin Dashboard</title>
-  <style>
-    .hidden { display: none; }
-    header { margin-bottom: 1rem; }
-    .row { display: flex; gap: 1rem; flex-wrap: wrap; }
-    .card { border: 1px solid #ddd; padding: 1rem; border-radius: 6px; flex: 1; min-width: 280px; }
-    label { display: block; margin-top: 0.5rem; }
-    input, select, textarea { width: 100%; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border: 1px solid #ddd; padding: 6px; }
-    th { background: #f7f7f7; }
-    .danger { color: #b00020; }
-  </style>
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a class="logo" href="/">Movie Addicts</a>
+      <div class="nav-actions">
+        <span id="userEmail" class="user" aria-live="polite"></span>
+        <ul class="nav-links">
+          <li><a href="/catelog">Catalog</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+        </ul>
+        <a id="loginBtn" class="btn" href="/userLogin" title="User Login">Login</a>
+      </div>
+    </div>
+  </nav>
   <header>
     <h1>Admin</h1>
     <p>Restricted area. Use only if you are the administrator.</p>
     <p>
-      <a href="/">Go to Home</a>
-      <button id="logout-header" class="hidden" style="margin-left: 0.75rem;">Log Out</button>
+        <a href="/">Go to Home</a>
+        <button id="logout-header" class="hidden ml-12">Log Out</button>
     </p>
   </header>
 
@@ -246,7 +249,24 @@
     });
 
     // init
-    updateUIAuthState();
+      updateUIAuthState();
+      // align login/logout in nav (optional)
+      (function(){
+        const username = localStorage.getItem('userName');
+        const loginBtn = document.getElementById('loginBtn');
+        const emailEl = document.getElementById('userEmail');
+        if (username) {
+          emailEl.textContent = username;
+          loginBtn.textContent = 'Logout';
+          loginBtn.removeAttribute('href');
+          loginBtn.onclick = () => { localStorage.removeItem('userName'); location.reload(); };
+        } else {
+          emailEl.textContent = '';
+          loginBtn.textContent = 'Login';
+          loginBtn.setAttribute('href', '/userLogin');
+          loginBtn.onclick = null;
+        }
+      })();
   </script>
 </body>
 </html>

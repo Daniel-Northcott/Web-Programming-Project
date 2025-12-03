@@ -2,20 +2,22 @@
 <html>
 	<head>
 		<title>Contact — Movie Addicts</title>
-		<link rel="stylesheet" href="style.css">
+		<link rel="stylesheet" href="/style.css">
 		<!-- Page: Contact | Purpose: Display contact instructions -->
 	</head>
 	<body>
 		<!-- Shared navigation -->
 		<nav class="nav">
 			<div class="container nav-inner">
-				<a class="logo" href="index.html">Movie Addicts</a>
+				<a class="logo" href="/">Movie Addicts</a>
 				<div class="nav-actions">
 					<span id="userEmail" class="user" aria-live="polite"></span>
 					<ul class="nav-links">
-						<li><a href="catelog.html">Catalog</a></li>
+						<li><a href="/catelog">Catalog</a></li>
+						<li><a href="/about">About</a></li>
+						<li><a href="/contact">Contact</a></li>
 					</ul>
-					<a id="loginBtn" class="btn" href="userLogin.html" title="User Login">Login</a>
+					<a id="loginBtn" class="btn" href="/userLogin" title="User Login">Login</a>
 				</div>
 			</div>
 		</nav>
@@ -44,5 +46,24 @@
 				</div>
 			</section>
 		</main>
+		<script>
+			// Align login/logout state in nav
+			(function(){
+				const username = localStorage.getItem('userName');
+				const loginBtn = document.getElementById('loginBtn');
+				const emailEl = document.getElementById('userEmail');
+				if (username) {
+					emailEl.textContent = username;
+					loginBtn.textContent = 'Logout';
+					loginBtn.removeAttribute('href');
+					loginBtn.onclick = () => { localStorage.removeItem('userName'); location.reload(); };
+				} else {
+					emailEl.textContent = '';
+					loginBtn.textContent = 'Login';
+					loginBtn.setAttribute('href', '/userLogin');
+					loginBtn.onclick = null;
+				}
+			})();
+		</script>
 	</body>
 </html>

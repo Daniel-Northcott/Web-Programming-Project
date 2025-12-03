@@ -8,38 +8,24 @@
 			Layout: Three-column grid per movie (poster | details | reviews + form).
 			Accessibility: container uses aria-live for dynamic movie list updates.
 		-->
-		<style>
-			/* Basic global styles */
-			body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#0f172a; color:#e5e7eb; margin:0; }
-			a { color:#22d3ee; text-decoration:none; }
-			.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-			nav { padding: 12px 0; }
-			h1 { margin: 12px 0 18px; }
-			/* Movie list layout */
-			.list { display:flex; flex-direction: column; gap: 24px; }
-			.row { display:grid; grid-template-columns: 180px 1fr 320px; gap: 24px; align-items: start; padding: 20px 0; border-bottom: 1px solid rgba(229,231,235,.08); }
-			.poster { width: 180px; height: 270px; border-radius: 8px; object-fit: cover; background:#0b1220; border:1px solid rgba(229,231,235,.06); }
-			.title { font-weight:700; font-size: 22px; margin-bottom: 6px; }
-			.sub { color:#cbd5e1; font-size: 14px; margin-bottom: 8px; }
-			.desc { color:#9ca3af; }
-			.dim { color:#9ca3af; font-size: 14px; }
-			.reviews { background:#111827; border:1px solid rgba(229,231,235,.06); border-radius:10px; padding:12px; }
-			.review { margin:0 0 10px; }
-			.form { display:grid; grid-template-columns: 1fr auto; gap:8px; margin-top:10px; }
-			textarea, select { width:100%; padding:8px; border-radius:8px; border:1px solid rgba(229,231,235,.08); background:#0b1220; color:#e5e7eb; }
-			button { cursor:pointer; padding:8px 12px; border-radius:8px; border:0; font-weight:600; background:#22d3ee; color:#051923; }
-			.msg { margin-top:8px; font-size:14px; color:#9ca3af; }
-			@media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
-		</style>
+		<link rel="stylesheet" href="/style.css" />
 	</head>
 	<body>
+		<nav class="nav">
+			<div class="container nav-inner">
+				<a class="logo" href="/">Movie Addicts</a>
+				<div class="nav-actions">
+					<span id="userEmail" class="user" aria-live="polite"></span>
+					<ul class="nav-links">
+						<li><a href="/catelog">Catalog</a></li>
+						<li><a href="/about">About</a></li>
+						<li><a href="/contact">Contact</a></li>
+					</ul>
+					<a id="loginBtn" class="btn" href="/userLogin" title="User Login">Login</a>
+				</div>
+			</div>
+		</nav>
 		<div class="container">
-			<nav>
-				<a href="/">Home</a> ·
-				<a href="/about">About</a> ·
-				<a href="/contact">Contact</a> ·
-				<a id="loginLink" href="/userLogin">Login</a> <span id="userEmail" class="dim" style="margin-left:8px"></span>
-			</nav>
 			<h1>Catalog</h1>
 			<div id="grid" class="list" aria-live="polite"></div>
 		</div>
@@ -51,18 +37,18 @@
 			 */
 			function updateAuthUI(){
 				const username = localStorage.getItem('userName');
-				const loginLink = document.getElementById('loginLink');
+				const loginBtn = document.getElementById('loginBtn');
 				const emailEl = document.getElementById('userEmail');
 				if (username) {
 					emailEl.textContent = username;
-					loginLink.textContent = 'Logout';
-					loginLink.removeAttribute('href');
-					loginLink.onclick = () => { localStorage.removeItem('userName'); updateAuthUI(); };
+					loginBtn.textContent = 'Logout';
+					loginBtn.removeAttribute('href');
+					loginBtn.onclick = () => { localStorage.removeItem('userName'); updateAuthUI(); };
 				} else {
 					emailEl.textContent = '';
-					loginLink.textContent = 'Login';
-					loginLink.setAttribute('href', '/userLogin');
-					loginLink.onclick = null;
+					loginBtn.textContent = 'Login';
+					loginBtn.setAttribute('href', '/userLogin');
+					loginBtn.onclick = null;
 				}
 			}
 
