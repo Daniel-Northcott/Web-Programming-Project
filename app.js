@@ -33,7 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 
 app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get('/catelog', (_, res) => res.sendFile(path.join(__dirname, 'catelog.html')));
+app.get('/catalog', (_, res) => res.sendFile(path.join(__dirname, 'catalog.html')));
 app.get('/contact', (_, res) => res.sendFile(path.join(__dirname, 'contact.html')));
 app.get('/about', (_, res) => res.sendFile(path.join(__dirname, 'about.html')));
 app.get('/userLogin', (_, res) => res.sendFile(path.join(__dirname, 'userLogin.html')));
