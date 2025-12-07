@@ -17,6 +17,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const multer = require('multer');
+const {MongoClient} = require("mongodb")
 
 const User = require(path.join(__dirname, 'models', 'User.js'));
 const Review = require(path.join(__dirname, 'models', 'Review.js'));
@@ -27,6 +28,7 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'password';
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'admin-token';
+const CLIENT = new MongoClient('mongodb://127.0.0.1:27017/')
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -59,6 +61,19 @@ function requireAdmin(req, res, next) {
 	const token = auth.startsWith('Bearer ') ? auth.slice('Bearer '.length) : null;
 	if (token === ADMIN_TOKEN) return next();
 	return res.status(403).json({ message: 'Admin authorization required' });
+}
+
+// async function for inserting contact details into database
+async function insertContact(name, email, issue, description){
+	await CLIENT.connect()
+	var db = CLIENT.db('movies')
+	var coll = db.collection('contact')
+	coll.insertOne({
+		'Name' : name,
+		'Email' : email,
+		'Issue' : issue,
+		'Description' : description
+	})
 }
 
 // Multer storage for poster uploads
@@ -348,5 +363,36 @@ async function start() {
 	}
 	app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
 }
+
+
+// post /contact_action
+app.post("/contact_action", function(req, res){
+	var query = req.body
+	var name = query.name
+	var issue = query.issue
+	var email = query.email
+	var description = query.description
+	insertContact(name, email, issue, description)
+	res.sendFile(path.join(__dirname,"contact_action.html"))
+})
+
+app.get('/get_movies', function(req, res){
+	res.send({'key' : 'value'})
+})
+
+app.get('/source.js', function(res, req){
+	res.sendFile(path.join(__dirname, "source.js"))
+})
+
+async function getMovies(){
+    await CLIENT.connect()
+    var db = CLIENT.db('movies')
+    var coll = db.collection('movies')
+    var movies = await coll.find({}).toArray()
+    await CLIENT.close()
+    return movies
+}
+
+getMovies()
 
 start();

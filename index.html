@@ -1,5 +1,7 @@
+<!DOCTYPE html>
 <html>
 	<head>
+		<script src="source.js"></script>
 		<title>Movie Addicts — Home</title>
 		<!--
 			Page: Home / Landing
@@ -42,14 +44,12 @@
 					<div class="card">
 						<h3>Current Movies</h3>
 						<p>Stay on top of what's playing right now.</p>
+						<div id="currentMovies" class="list" aria-live="polite"></div>
 					</div>
 					<div class="card">
-						<h3>Ratings</h3>
-						<p>See aggregated scores at a glance.</p>
-					</div>
-					<div class="card">
-						<h3>Reviews</h3>
-						<p>Read community opinions before you watch.</p>
+						<h3>Top Picks</h3>
+						<p>See the Top Picks.</p>
+						<div id="topMovies" class="list" aria-live="polite"></div>
 					</div>
 				</div>
 			</section>
@@ -88,6 +88,102 @@
 					loginBtn.onclick = null;
 				}
 			}
+
+			async function loadMovies(){
+				try {
+					const res = await fetch('/api/movies');
+					const entries = await res.json();
+
+					const topEntries = getTopMovies(entries)
+					const currentEntries = getCurrentMovies(entries)
+
+					const topMovies = document.getElementById('topMovies');
+					const currentMovies = document.getElementById('currentMovies')
+
+					if (!topEntries.length) { grid.innerHTML = '<p class="dim">No movies found.</p>'; return; }
+					// add top movies to the top movies section
+					topMovies.innerHTML = topEntries.map((m) => {
+						const title = m.title;
+						const img = m.image ? `/Pictures/${m.image}` : (m.poster ? (m.poster.startsWith('/') ? m.poster : `/${m.poster}`) : '');
+						const desc = m.description || '';
+						const year = m.year ? `${m.year}` : '';
+						const genre = m.genre || '';
+						const director = m.director || '';
+						return `
+							<div data-title="${title}">
+								${img ? `<img class=\"poster\" src=\"${img}\" alt=\"Poster for ${title}\" onerror=\"this.style.display='none'\" />` : `<div class=\"poster\"></div>`}
+								<div>
+									<div class="title">${title}</div>
+									<div class="sub">${[year, genre, director].filter(Boolean).join(' • ')}</div>
+									<p class="desc">${desc}</p>
+								</div>
+							</div>
+						`;
+					}).join('');
+
+					currentMovies.innerHTML = currentEntries.map((m) => {
+						const title = m.title;
+						const img = m.image ? `/Pictures/${m.image}` : (m.poster ? (m.poster.startsWith('/') ? m.poster : `/${m.poster}`) : '');
+						const desc = m.description || '';
+						const year = m.year ? `${m.year}` : '';
+						const genre = m.genre || '';
+						const director = m.director || '';
+						return `
+							<div data-title="${title}">
+								${img ? `<img class=\"poster\" src=\"${img}\" alt=\"Poster for ${title}\" onerror=\"this.style.display='none'\" />` : `<div class=\"poster\"></div>`}
+								<div class="details">
+									<div class="title">${title}</div>
+									<div class="sub">${[year, genre, director].filter(Boolean).join(' • ')}</div>
+									<p class="desc">${desc}</p>
+								</div>
+							</div>
+						`;
+					}).join('');
+				} catch (e) {
+					document.getElementById('grid').innerHTML = '<p class="dim">Failed to load catalog.</p>';
+				}
+			}
+
+			function getTopMovies(entries){
+				picks = ["Inception", "The Thing", "The Godfather"]
+				topPicks = []
+				for (var i=0;i<entries.length;i++){
+					
+					if(picks.includes(entries[i]["title"])){
+						topPicks.push(entries[i])
+						console.log(entries[i])
+					}
+				}
+				return topPicks
+			}
+
+			function getCurrentMovies(entries){
+				picks = ['Wicked: For Good']
+				currentPicks = []
+				for (var i=0;i<entries.length;i++){
+					
+					if(picks.includes(entries[i]["title"])){
+						currentPicks.push(entries[i])
+						console.log(entries[i])
+					}
+				}
+				return currentPicks
+			}
+
+			async function loadReviews(title){
+				const list = document.getElementById(`reviews-${encodeURIComponent(title)}`);
+				try {
+					const res = await fetch(`/api/reviews?title=${encodeURIComponent(title)}`);
+					const reviews = await res.json();
+					if (!Array.isArray(reviews) || !reviews.length) { list.innerHTML = '<p class="dim">No reviews yet.</p>'; return; }
+					list.innerHTML = reviews.map(r => `<p class=\"review\"><strong>${r.username || r.email || 'anon'}</strong> — ${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}<br/>${r.text || ''}</p>`).join('');
+				} catch (err) {
+					list.innerHTML = '<p class="dim">Failed to load reviews.</p>';
+				}
+			}
+
+			loadMovies()
+
 			updateAuthUI();
 		</script>
 	</body>
