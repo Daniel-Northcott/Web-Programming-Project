@@ -1,4 +1,4 @@
-Dan's Ideas
+~ Dan's Ideas ~
 Pizza Ordering Website - Votes: dan, max
 -Ordering (module)
 -cart
@@ -17,7 +17,7 @@ Blog (reddit):
 -Login/users (module)
 -Pages (like a subreddit module)
 -------------------------------------------------------------
-Max's Idea
+~ Max's Idea ~
 ***WINNER***
 Movie discussion forum - Votes: dan, max, ana
 -current movies (modules)
@@ -53,7 +53,7 @@ DUE: Finish by Tuesday 12/2 Meet at 11AM on teams
 
 - About (TBD IF WE NEED THIS)
 -------------------------------------------------------------
-Ana's Ideas
+~ Ana's Ideas ~
 Fitness (tracker) - Votes: dan
 -body metrics (bio data)
 -excercises (modules)
