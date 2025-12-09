@@ -175,3 +175,15 @@ textarea{
     color: #051923; 
     font-weight: 600;
 }
+
+/* Radios & checkboxes should not be full-width like text inputs */
+input[type="radio"], input[type="checkbox"]{
+    width: auto;
+    padding: 0;
+    margin: 0;
+    vertical-align: middle;
+}
+
+/* Radio group layout for contact form */
+.radio-group{ display:flex; gap:12px; align-items:center; margin:8px 0 12px; }
+.radio-group label{ display:inline-flex; align-items:center; gap:8px; color:var(--muted); font-size:14px; }
