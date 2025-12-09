@@ -1,4 +1,5 @@
-Pizza Ordering Website: -dan, max
+Dan's Ideas
+Pizza Ordering Website - Votes: dan, max
 -Ordering (module)
 -cart
 -about
@@ -15,14 +16,17 @@ Blog (reddit):
 -Posts (module)
 -Login/users (module)
 -Pages (like a subreddit module)
-
+-------------------------------------------------------------
+Max's Idea
 ***WINNER***
-Movie discussion forum: -dan, max, ana
+Movie discussion forum - Votes: dan, max, ana
 -current movies (modules)
 -movie ratings (modules)
 -users (module)
 -reviews (module)
 ***WINNER***
+
+Meeting: November 28, 2025 
 Pages:
 -home (features movies, whats in theaters rn....); Max
     - no user input
@@ -48,15 +52,14 @@ Tasks:
 DUE: Finish by Tuesday 12/2 Meet at 11AM on teams
 
 - About (TBD IF WE NEED THIS)
-
-
-
-Fitness (tracker) -dan
+-------------------------------------------------------------
+Ana's Ideas
+Fitness (tracker) - Votes: dan
 -body metrics (bio data)
 -excercises (modules)
 -progress tracker (module)
 
-GPA calculator -max
+GPA calculator - Votes: max
 -login (module)
 -courses (module)
 -grades (overall gpa)
