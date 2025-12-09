@@ -29,7 +29,55 @@ a{
 .dim{ color: var(--muted); font-size: 14px; }
 .container{ max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 h1{ margin: 12px 0 18px; }
+/* About style */
+.sectionAbout {
+    background:#111827;
+    border:1px solid rgba(229,231,235,.06);
+    border-radius:10px;
+    padding:20px;
+    margin: 0 auto 24px;
 
+    max-width: 1000px;
+}
+.sectionAbout ul {
+    list-style-position: inside;
+    padding: 0;
+}
+.subAbout {
+    font-size:18px;
+    font-weight:600;
+    margin-bottom:10px;
+    color:#f1f5f9;
+}
+.textAbout {color:#cbd5e1; }
+.teamAbout { 
+    display: flex;
+	justify-content: center;
+	gap: 24px;
+	flex-wrap: wrap;
+}
+.cardAbout {
+    background:#0b1220; 
+    border-radius:10px; 
+    border:1px solid rgba(229,231,235,.06);
+    padding:14px;
+    width:240px;
+}
+.headshot {
+	width: 120px;
+	height: 120px;
+	min-width: 120px;
+	min-height: 120px;
+
+	object-fit: cover;
+	border-radius: 50%;
+
+	display: block;
+	margin: 0 auto 10px;
+
+	border: 2px solid #444;
+}
+.dimAbout { color:#94a3b8; font-size:14px; }
 /* Catalog/List styles */
 .list{ display:flex; flex-direction: column; gap: 24px; }
 .row{ display:grid; grid-template-columns: 180px 1fr 320px; gap: 24px; align-items: start; padding: 20px 0; border-bottom: 1px solid var(--border); }
