@@ -232,6 +232,6 @@ input[type="radio"], input[type="checkbox"]{
     vertical-align: middle;
 }
 
-/* Radio group layout for contact form */
+/* Radio group layout for contact form display fix*/
 .radio-group{ display:flex; gap:12px; align-items:center; margin:8px 0 12px; }
 .radio-group label{ display:inline-flex; align-items:center; gap:8px; color:var(--muted); font-size:14px; }
